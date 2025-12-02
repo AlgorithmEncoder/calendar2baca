@@ -1,0 +1,523 @@
+{
+    "asignaturas": {
+        "mates II": {
+            "peso": [
+                0.819
+            ],
+            "momentos": [
+                "11",
+                "24",
+                "30",
+                "41",
+                "37"
+            ],
+            "examenes": [
+                {
+                    "tipo_examen": "corriente",
+                    "fechas_horas": [
+                        {
+                            "fecha": "2025-12-19",
+                            "hora": "08:55-09:50"
+                        }
+                    ],
+                    "duracion": "1:30"
+                }
+            ],
+            "tipo_examen": []
+        },
+        "mates CCSS": {
+            "peso": [
+                0.625
+            ],
+            "momentos": [
+                "11",
+                "24",
+                "30",
+                "41"
+            ],
+            "examenes": [
+                {
+                    "tipo_examen": "corriente",
+                    "fechas_horas": [
+                        {
+                            "fecha": "2025-12-19",
+                            "hora": "08:55-09:50"
+                        }
+                    ],
+                    "duracion": "1:30"
+                }
+            ],
+            "tipo_examen": []
+        },
+        "física": {
+            "peso": [
+                0.69
+            ],
+            "momentos": [
+                "02",
+                "12",
+                "31",
+                "44"
+            ],
+            "examenes": [
+                {
+                    "tipo_examen": "corriente",
+                    "fechas_horas": [
+                        {
+                            "fecha": "2025-12-16",
+                            "hora": "09:50-10:45"
+                        }
+                    ],
+                    "duracion": "1h"
+                },
+                {
+                    "tipo_examen": "corriente",
+                    "fechas_horas": [],
+                    "duracion": "1h"
+                },
+                {
+                    "tipo_examen": "corriente",
+                    "fechas_horas": [],
+                    "duracion": "1h"
+                },
+                {
+                    "tipo_examen": "corriente",
+                    "fechas_horas": [],
+                    "duracion": "1h"
+                },
+                {
+                    "tipo_examen": "corriente",
+                    "fechas_horas": [],
+                    "duracion": "1h"
+                }
+            ],
+            "tipo_examen": []
+        },
+        "biología": {
+            "peso": [
+                0.867
+            ],
+            "momentos": [
+                "02",
+                "12",
+                "31",
+                "44"
+            ],
+            "examenes": [
+                {
+                    "tipo_examen": "corriente",
+                    "fechas_horas": [
+                        {
+                            "fecha": "2025-12-15",
+                            "hora": "09:50-10:45"
+                        }
+                    ],
+                    "duracion": "1h"
+                }
+            ],
+            "tipo_examen": []
+        },
+        "tecno": {
+            "peso": [
+                0.517
+            ],
+            "momentos": [
+                "04",
+                "05",
+                "14",
+                "25"
+            ],
+            "examenes": [],
+            "tipo_examen": []
+        },
+        "química": {
+            "peso": [
+                0.832
+            ],
+            "momentos": [
+                "04",
+                "05",
+                "14",
+                "25"
+            ],
+            "examenes": [
+                {
+                    "tipo_examen": "corriente",
+                    "fechas_horas": [
+                        {
+                            "fecha": "2025-12-09",
+                            "hora": "12:05-13:00"
+                        }
+                    ],
+                    "duracion": "1h"
+                },
+                {
+                    "tipo_examen": "corriente",
+                    "fechas_horas": [],
+                    "duracion": "1h"
+                },
+                {
+                    "tipo_examen": "corriente",
+                    "fechas_horas": [],
+                    "duracion": "1h"
+                }
+            ],
+            "tipo_examen": []
+        },
+        "historia": {
+            "peso": [
+                0.939
+            ],
+            "momentos": [
+                "01",
+                "13",
+                "40"
+            ],
+            "examenes": [
+                {
+                    "tipo_examen": "corriente",
+                    "fechas_horas": [
+                        {
+                            "fecha": "2025-12-22",
+                            "hora": "08:55-09:50"
+                        },
+                        {
+                            "fecha": "2025-12-19",
+                            "hora": "08:00-08:55"
+                        },
+                        {
+                            "fecha": "2025-12-16",
+                            "hora": "11:10-12:05"
+                        }
+                    ],
+                    "duracion": "1h"
+                },
+                {
+                    "tipo_examen": "corriente",
+                    "fechas_horas": [],
+                    "duracion": "1h"
+                }
+            ],
+            "tipo_examen": []
+        },
+        "filosofía": {
+            "peso": [
+                0.789
+            ],
+            "momentos": [
+                "00",
+                "20",
+                "45"
+            ],
+            "examenes": [
+                {
+                    "tipo_examen": "corriente",
+                    "fechas_horas": [
+                        {
+                            "fecha": "2025-12-12",
+                            "hora": "13:00-13:55"
+                        },
+                        {
+                            "fecha": "2025-12-19",
+                            "hora": "13:00-13:55"
+                        }
+                    ],
+                    "duracion": "1h"
+                },
+                {
+                    "tipo_examen": "corriente",
+                    "fechas_horas": [],
+                    "duracion": "1h"
+                },
+                {
+                    "tipo_examen": "corriente",
+                    "fechas_horas": [],
+                    "duracion": "1h"
+                },
+                {
+                    "tipo_examen": "corriente",
+                    "fechas_horas": [
+                        {
+                            "fecha": "2025-12-01",
+                            "hora": "08:00-08:55"
+                        },
+                        {
+                            "fecha": "2025-12-03",
+                            "hora": "08:00-08:55"
+                        },
+                        {
+                            "fecha": "2025-12-05",
+                            "hora": "13:00-13:55"
+                        }
+                    ],
+                    "duracion": "1h"
+                }
+            ],
+            "tipo_examen": []
+        },
+        "castellano": {
+            "peso": [
+                0.657,
+                0.332,
+                0.459
+            ],
+            "momentos": [
+                "10",
+                "22",
+                "33"
+            ],
+            "examenes": [],
+            "tipo_examen": [
+                "literatura",
+                "comentario",
+                "morfologia"
+            ]
+        },
+        "valenciano": {
+            "peso": [
+                0.633,
+                0.446
+            ],
+            "momentos": [
+                "16",
+                "23",
+                "35"
+            ],
+            "examenes": [],
+            "tipo_examen": [
+                "literatura",
+                "comentari"
+            ]
+        },
+        "inglés": {
+            "peso": [
+                0.3
+            ],
+            "momentos": [
+                "06",
+                "21",
+                "34"
+            ],
+            "examenes": [],
+            "tipo_examen": []
+        },
+        "francés": {
+            "peso": [
+                0.475,
+                0.375
+            ],
+            "momentos": [
+                "06",
+                "21",
+                "34"
+            ],
+            "examenes": [],
+            "tipo_examen": [
+                "verbos",
+                "selectividad"
+            ]
+        }
+    },
+    "momentos": {
+        "00": {
+            "hora": "08:00-08:55",
+            "dia": "lunes",
+            "peso": 0.3
+        },
+        "01": {
+            "hora": "08:55-09:50",
+            "dia": "lunes",
+            "peso": 0.5
+        },
+        "02": {
+            "hora": "09:50-10:45",
+            "dia": "lunes",
+            "peso": 0.3
+        },
+        "03": {
+            "hora": "11:10-12:05",
+            "dia": "lunes",
+            "peso": 0.1
+        },
+        "04": {
+            "hora": "12:05-13:00",
+            "dia": "lunes",
+            "peso": 0.1
+        },
+        "05": {
+            "hora": "13:00-13:55",
+            "dia": "lunes",
+            "peso": 0.1
+        },
+        "06": {
+            "hora": "14:05-15:00",
+            "dia": "lunes",
+            "peso": 0.1
+        },
+        "07": {
+            "hora": "tarde",
+            "dia": "lunes",
+            "peso": 0.1
+        },
+        "10": {
+            "hora": "08:00-08:55",
+            "dia": "martes",
+            "peso": 0.9
+        },
+        "11": {
+            "hora": "08:55-09:50",
+            "dia": "martes",
+            "peso": 0.1
+        },
+        "12": {
+            "hora": "09:50-10:45",
+            "dia": "martes",
+            "peso": 0.1
+        },
+        "13": {
+            "hora": "11:10-12:05",
+            "dia": "martes",
+            "peso": 0.1
+        },
+        "14": {
+            "hora": "12:05-13:00",
+            "dia": "martes",
+            "peso": 0.1
+        },
+        "15": {
+            "hora": "13:00-13:55",
+            "dia": "martes",
+            "peso": 0.1
+        },
+        "16": {
+            "hora": "14:05-15:00",
+            "dia": "martes",
+            "peso": 0.1
+        },
+        "17": {
+            "hora": "tarde",
+            "dia": "martes",
+            "peso": 0.1
+        },
+        "20": {
+            "hora": "08:00-08:55",
+            "dia": "miércoles",
+            "peso": 0.3
+        },
+        "21": {
+            "hora": "08:55-09:50",
+            "dia": "miércoles",
+            "peso": 0.1
+        },
+        "22": {
+            "hora": "09:50-10:45",
+            "dia": "miércoles",
+            "peso": 0.1
+        },
+        "23": {
+            "hora": "11:10-12:05",
+            "dia": "miércoles",
+            "peso": 0.1
+        },
+        "24": {
+            "hora": "12:05-13:00",
+            "dia": "miércoles",
+            "peso": 0.1
+        },
+        "25": {
+            "hora": "13:00-13:55",
+            "dia": "miércoles",
+            "peso": 0.1
+        },
+        "26": {
+            "hora": "14:05-15:00",
+            "dia": "miércoles",
+            "peso": 0.1
+        },
+        "27": {
+            "hora": "tarde",
+            "dia": "miércoles",
+            "peso": 0.1
+        },
+        "30": {
+            "hora": "08:00-08:55",
+            "dia": "jueves",
+            "peso": 0.1
+        },
+        "31": {
+            "hora": "08:55-09:50",
+            "dia": "jueves",
+            "peso": 0.1
+        },
+        "32": {
+            "hora": "09:50-10:45",
+            "dia": "jueves",
+            "peso": 0.1
+        },
+        "33": {
+            "hora": "11:10-12:05",
+            "dia": "jueves",
+            "peso": 0.1
+        },
+        "34": {
+            "hora": "12:05-13:00",
+            "dia": "jueves",
+            "peso": 0.1
+        },
+        "35": {
+            "hora": "13:00-13:55",
+            "dia": "jueves",
+            "peso": 0.1
+        },
+        "36": {
+            "hora": "14:05-15:00",
+            "dia": "jueves",
+            "peso": 0.1
+        },
+        "37": {
+            "hora": "tarde",
+            "dia": "jueves",
+            "peso": 0.1
+        },
+        "40": {
+            "hora": "08:00-08:55",
+            "dia": "viernes",
+            "peso": 0.1
+        },
+        "41": {
+            "hora": "08:55-09:50",
+            "dia": "viernes",
+            "peso": 0.1
+        },
+        "42": {
+            "hora": "09:50-10:45",
+            "dia": "viernes",
+            "peso": 0.1
+        },
+        "43": {
+            "hora": "11:10-12:05",
+            "dia": "viernes",
+            "peso": 0.1
+        },
+        "44": {
+            "hora": "12:05-13:00",
+            "dia": "viernes",
+            "peso": 0.3
+        },
+        "45": {
+            "hora": "13:00-13:55",
+            "dia": "viernes",
+            "peso": 0.3
+        },
+        "46": {
+            "hora": "14:05-15:00",
+            "dia": "viernes",
+            "peso": 0.1
+        },
+        "47": {
+            "hora": "tarde",
+            "dia": "viernes",
+            "peso": 0.1
+        }
+    }
+}

@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Calendario de Exámenes</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='styles/modal_examen.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='styles/calendar.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='styles/main.css') }}">
+</head>
+<body>
+<div class="app">
+    <header>
+    <h1>Calendario de exámenes</h1>
+    <div class="controls">
+        <button id="prev" class="btn">◀</button>
+        <div class="month-title" id="monthYear"></div>
+        <button id="next" class="btn">▶</button>
+        <button id="todayBtn" class="btn">Hoy</button>
+        <button id="registerExamBtn" class="btn">Registrar examen</button>
+    </div>
+    </header>
+
+    <div class="calendar">
+    <aside class="sidebar">
+        <div class="grid-card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+            <div><strong>Vista:</strong> mes</div>
+            <div id="currentInfo" style="font-size:13px;color:var(--muted)"></div>
+        </div>
+        <div class="legend" id="legend"></div>
+        <div class="today" id="todayText"></div>
+        <div class="exam-header">
+            <h2>Exámenes por escoger</h2>
+
+            <div class="exam-nav-buttons">
+                <button id="prevExam" class="nav-btn">←</button>
+                <button id="nextExam" class="nav-btn">→</button>
+            </div>
+        </div>
+
+        <!-- Contenedor donde se mostrará UN examen -->
+        <div id="examChoiceViewer"></div>
+        </div>
+    </aside>
+
+    <main>
+        <div class="grid-card">
+        <div class="weekdays">
+            <div>Lu</div><div>Ma</div><div>Mi</div><div>Ju</div><div>Vi</div><div>Sá</div><div>Do</div>
+        </div>
+        <div id="calendarGrid" class="days"></div>
+        </div>
+    </main>
+    </div>
+</div>
+
+<template id="modalT">
+    <div class="modal" role="dialog">
+    <div class="sheet">
+        <button id="closeModal" class="btn" style="float:right">Cerrar</button>
+        <h2 id="modalTitle">Exámenes</h2>
+        <div id="modalContent"></div>
+    </div>
+    </div>
+</template>
+
+<template id="registerExamT">
+    <div class="modal" role="dialog">
+        <div class="sheet">
+        <button id="closeRegisterModal" class="btn" style="float:right">Cerrar</button>
+        <h2>Registrar examen</h2>
+
+        <!-- NOTE: action -> /registrar; el submit será normal POST (no ajax) -->
+        <form id="formExam" method="post" action="/registrar">
+            <label>Asignatura
+            <select name="asignatura" id="asignatura" required>
+                <option value="" disabled selected>-- selecciona asignatura --</option>
+            </select>
+            </label>
+
+            <label id="select_box">Tipo de examen
+            <select name="tipo_examen" id="tipo_examen"></select>
+            <div id="tipo_info" style="font-size:0.9em;color:#555;margin-top:6px"></div>
+            </label>
+
+            <div id="fechas_disponibles_container">
+            <label>Fechas y horas disponibles (elige una o varias)</label>
+            <div class="week-navigation">
+                <button type="button" id="prevWeek">Anterior</button>
+                <button type="button" id="nextWeek">Siguiente</button>
+            </div>
+            <div id="fechas_disponibles"></div>
+            </div>
+
+            <label>Duración
+            <select name="duracion" required>
+                <option value="1h">1h</option>
+                <option value="1:30">1:30</option>
+                <option value="2h">2h</option>
+            </select>
+            </label>
+
+            <div style="margin-top:12px">
+            <button type="submit">Registrar examen</button>
+            <button type="button" id="cancelExam">Cancelar</button>
+            </div>
+        </form>
+        </div>
+    </div>
+</template>
+
+<script>
+    // ---------- Datos que inyecta Flask ----------
+    // `data` contiene la estructura completa de asignaturas (igual que antes)
+    const data = {{ asignaturas_json | safe }};
+    const momentos = {{ momentos | safe }};
+
+    let examChoices = [];
+    let examIndex = 0;
+
+
+    // Cargar examChoices desde tu estructura "data"
+    function generarExamenesPorEscoger() {
+        examChoices = []; // limpiar
+
+        Object.keys(data).forEach(asig => {
+            const asignatura = data[asig];
+            if (!asignatura.examenes) return;
+
+            asignatura.examenes.forEach((ex, idx) => {
+                const fechas = ex.fechas_horas || [];
+                if (fechas.length <= 1) return;
+
+                examChoices.push({
+                    id: `${asig};${fechas[0]?.fecha || ''};${fechas[0]?.hora || ''}`, // <asignatura>;<fecha>;<hora>
+                    asignatura: asig,
+                    nombre: ex.tipo_examen || 'Examen',
+                    duracion: ex.duracion,
+                    fechas: fechas,
+                    ranking: null
+                });
+            });
+        });
+
+        if (examChoices.length > 0) {
+            examIndex = 0;
+            renderExamAtIndex(examIndex);
+        }
+    }
+
+
+    // Renderiza solo el examen actual en pantalla
+    function renderExamAtIndex(idx) {
+        if (examChoices.length === 0) {
+            container.innerHTML = "<p>No hay exámenes por escoger</p>";
+            return;
+        }
+
+        const cont = document.getElementById("examChoiceViewer");
+        cont.innerHTML = "";
+
+        const exam = examChoices[idx];
+        const fechas = exam.fechas; // tus fechas originales
+
+        const item = document.createElement("div");
+        item.className = "exam-choice-item";
+
+        item.innerHTML = `
+            <div class="exam-choice-header">
+                <div class="exam-choice-asignatura">${exam.asignatura}</div>
+                <div class="exam-choice-dots" style="background:${subjColor[exam.asignatura]}"></div>
+            </div>
+
+            <div class="exam-choice-details">
+                <div style="opacity:0.7; font-size:12px; margin-bottom:3px;">
+                    ${exam.tipo || 'Examen'} — Duración ${exam.duracion}
+                </div>
+
+                <div id="original-${exam.id}" class="fechas-container">
+                    ${fechas.map(f => `
+                        <span class="fecha-chip">${f.fecha} ${f.hora || ''}</span>
+                    `).join("")}
+                </div>
+
+                <div id="opt-${exam.id}" class="options-container"></div>
+
+                <button id="btn-${exam.id}" class="buscar-mejor-btn"
+                    style="margin-top:10px; width:100%; padding:6px;
+                    background:rgba(255,255,255,0.12); 
+                    border:1px solid rgba(255,255,255,0.18); 
+                    border-radius:8px;
+                    color:white; cursor:pointer;">
+                    Buscar mejor día
+                </button>
+            </div>
+        `;
+
+        cont.appendChild(item);
+
+        // evento botón
+        const btn = document.getElementById(`btn-${exam.id}`);
+        btn.addEventListener("click", () => buscarMejorDia(exam.id));
+
+        // si ya existe un ranking, lo renderizamos inmediatamente
+        if (exam.ranking) {
+            renderOptimizedOptions(exam, exam.ranking);
+        }
+        updateNavButtons()
+    }
+
+    // Flechas: activar/desactivar
+    function updateNavButtons() {
+        document.getElementById("prevExam").disabled = examIndex === 0;
+        document.getElementById("nextExam").disabled = examIndex === examChoices.length - 1;
+    }
+
+
+    // Eventos de flechas
+    document.getElementById("prevExam").addEventListener("click", () => {
+        if (examIndex > 0) {
+            examIndex--;
+            renderExamAtIndex(examIndex);
+        }
+    });
+
+    document.getElementById("nextExam").addEventListener("click", () => {
+        if (examIndex < examChoices.length - 1) {
+            examIndex++;
+            renderExamAtIndex(examIndex);
+        }
+    });
+
+
+    // Renderizar opciones con estrellas / ticks / warning
+    function renderOptimizedOptions(exam, ranking) {
+        // Ocultar fechas originales
+        const original = document.getElementById(`original-${exam.id}`);
+        if (original) original.style.display = "none";
+
+        const cont = document.getElementById(`opt-${exam.id}`);
+        cont.innerHTML = "";
+
+        ranking.forEach((opt, i) => {
+            const good = opt.score >= 60;
+
+            cont.innerHTML += `
+                <div class="ranking-item ${i === 0 ? 'best-option' : ''}">
+                    <div class="ranking-left">
+                        <span class="ranking-date">${opt.fecha} ${opt.hora || ''}</span>
+                    </div>
+
+                    <div class="ranking-right">
+                        <span class="ranking-score ${good ? 'good-score' : 'bad-score'}">
+                            ${opt.score}
+                        </span>
+
+                        ${opt.score == 100 ? `<span class="ranking-icon star">★</span>` :
+                        good ? `<span class="ranking-icon tick">✔</span>` :
+                        opt.score == 100/ranking.length ? `<span class="ranking-icon star">★</span>` :
+                        `<span class="ranking-icon warning">⚠</span>`
+                        }
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    // Petición al servidor
+    async function buscarMejorDia(examId) {
+        if (!examId) {
+            console.error("examId undefined:", examId);
+            return;
+        }
+        const res = await fetch(`/buscar_mejor_dia/${examId}`);
+        const data = await res.json();
+        if (!data || !data.ranking) return;
+
+        const exam = examChoices.find(e => e.id === examId);
+        exam.ranking = data.ranking.sort((a,b) => b.score - a.score);
+        renderExamAtIndex(examIndex);
+    }
+
+
+    // ----------------------- Registro de examen (modal + API) -----------------------
+    const registerBtn = document.getElementById('registerExamBtn');
+
+    registerBtn.addEventListener('click', () => {
+        const tpl = document.getElementById('registerExamT');
+        const clone = tpl.content.cloneNode(true);
+        const modal = clone.querySelector('.modal');
+        document.body.appendChild(clone);
+
+        // elementos dentro del modal/form
+        const form = modal.querySelector('#formExam');
+        const asignaturaEl = modal.querySelector('#asignatura');
+        const tipoEl = modal.querySelector('#tipo_examen');
+        const selectBox = modal.querySelector('#select_box');
+        const fechasContainer = modal.querySelector('#fechas_disponibles');
+        const prevWeekBtn = modal.querySelector('#prevWeek');
+        const nextWeekBtn = modal.querySelector('#nextWeek');
+        const cancelBtn = modal.querySelector('#cancelExam');
+
+        // cerrar modal
+        modal.querySelector('#closeRegisterModal').addEventListener('click', () => modal.remove());
+        cancelBtn.addEventListener('click', () => modal.remove());
+        modal.addEventListener('click', e => { if(e.target === modal) modal.remove(); });
+
+        // poblar asignaturas en el select
+        asignaturaEl.innerHTML = '<option value="" disabled selected>-- selecciona asignatura --</option>';
+        Object.keys(data || {}).forEach(a => {
+            const opt = document.createElement('option'); opt.value = a; opt.textContent = a;
+            asignaturaEl.appendChild(opt);
+        });
+
+        // estado del formulario (por apertura del modal)
+        let currentWeekStart = null; // Date (lunes)
+        let fechasDisponibles = [];  // array de {codigo, fecha, hora}
+        let fechasMap = {};          // fechaISO -> [ {codigo, hora} ]
+        let seleccionadas = new Set(); // valores 'codigo-fecha' seleccionados (persisten al cambiar semanas)
+
+        // helpers para semana (lunes = start)
+        function getMonday(d){
+            const dd = new Date(d);
+            const diff = (dd.getDay() + 6) % 7; // 0..6 where 0=Monday
+            dd.setDate(dd.getDate() - diff);
+            dd.setHours(0,0,0,0);
+            return dd;
+        }
+
+        function dateToISOLocal(d){  
+            const y = d.getFullYear();
+            const m = String(d.getMonth()+1).padStart(2,'0');
+            const da = String(d.getDate()).padStart(2,'0');
+            return `${y}-${m}-${da}`;
+        }
+        
+        function generarFechasSemana() {
+            fechasContainer.innerHTML = '';
+            if (!currentWeekStart) return;
+
+            // Crear contenedor horizontal
+            const row = document.createElement('div');
+            row.style.display = 'grid';
+            row.style.gridTemplateColumns = 'repeat(5, 1fr)';
+            row.style.gap = '10px';
+            row.style.marginTop = '12px';
+
+            const DIAS = [0,1,2,3,4]; // Lunes a viernes
+
+            for (const offset of DIAS) {
+                const dia = new Date(currentWeekStart);
+                dia.setDate(dia.getDate() + offset);
+
+                const iso = dateToISOLocal(dia);
+
+                // Tarjeta de día
+                const card = document.createElement('div');
+                card.style.background = "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015))";
+                card.style.border = "1px solid rgba(255,255,255,0.05)";
+                card.style.borderRadius = "10px";
+                card.style.padding = "10px";
+                card.style.minHeight = "110px";
+                card.style.display = "flex";
+                card.style.flexDirection = "column";
+
+                // Título (día)
+                const titulo = document.createElement('div');
+                titulo.style.fontWeight = "600";
+                titulo.style.marginBottom = "8px";
+                titulo.style.textTransform = "capitalize";
+                titulo.textContent = dia.toLocaleDateString('es-ES', { weekday: 'short', day: '2-digit', month: '2-digit' });
+
+                card.appendChild(titulo);
+
+                const items = fechasMap[iso] || [];
+
+                if (items.length === 0) {
+                    const empty = document.createElement('div');
+                    empty.style.color = 'var(--muted)';
+                    empty.textContent = '—';
+                    card.appendChild(empty);
+                } else {
+                    items.forEach(it => {
+                        const valor = `${it.codigo}-${iso}`;
+                        const div = document.createElement('div');
+                        div.className = 'checkbox-container';
+
+                        const label = document.createElement('label');
+                        const input = document.createElement('input');
+                        input.type = 'checkbox';
+                        input.value = valor;
+                        input.checked = seleccionadas.has(valor);
+
+                        input.addEventListener('change', (e) => {
+                            if (e.target.checked) seleccionadas.add(e.target.value);
+                            else seleccionadas.delete(e.target.value);
+                        });
+
+                        label.appendChild(input);
+                        label.appendChild(document.createTextNode(` ${it.hora} (${it.codigo})`));
+                        div.appendChild(label);
+                        card.appendChild(div);
+                    });
+                }
+
+                row.appendChild(card);
+            }
+
+            fechasContainer.appendChild(row);
+        }
+
+        // navegar semanas
+        prevWeekBtn.addEventListener('click', () => {
+            if(!currentWeekStart) return;
+            currentWeekStart.setDate(currentWeekStart.getDate() - 7);
+            
+            // aplicar animación
+            fechasContainer.classList.add('slide-in-left');
+            setTimeout(() => {
+                fechasContainer.classList.remove('slide-in-left');
+                generarFechasSemana();
+            }, 200); // tiempo de animación inicial
+        });
+
+        nextWeekBtn.addEventListener('click', () => {
+            if(!currentWeekStart) return;
+            currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+
+            // aplicar animación
+            fechasContainer.classList.add('slide-in-right');
+            fechasContainer.classList.add('fade');
+            setTimeout(() => {
+                fechasContainer.classList.remove('slide-in-right');
+                fechasContainer.classList.remove('fade');
+                generarFechasSemana();
+            }, 200);
+        });
+
+
+        // al cambiar asignatura: pedir API /api/momentos/<asignatura>
+        asignaturaEl.addEventListener('change', async () => {
+            const a = asignaturaEl.value;
+            // poblar tipo_examen desde data local (estructura DB)
+            tipoEl.innerHTML = '';
+            const tipos = (data[a] && data[a].tipo_examen) || [];
+            if(tipos.length === 0){
+                selectBox.style.display = 'none';
+            } else {
+                selectBox.style.display = 'block';
+                const placeholder = document.createElement('option'); placeholder.disabled=true; placeholder.selected=true; placeholder.text='-- selecciona tipo --';
+                tipoEl.add(placeholder);
+                tipos.forEach(t => {
+                    const opt = document.createElement('option'); opt.value=t; opt.text=t; tipoEl.add(opt);
+                });
+            }
+
+            try {
+                const res = await fetch(`/api/momentos/${encodeURIComponent(a)}`);
+                if(!res.ok) throw new Error('Fallo al solicitar momentos');
+                const json = await res.json();
+                // json: {momentos, detalles, fechas_disponibles}
+                fechasDisponibles = json.fechas_disponibles || [];
+
+                // construir map fecha -> [{codigo,hora}]
+                fechasMap = {};
+                fechasDisponibles.forEach(fd => {
+                    if(!fechasMap[fd.fecha]) fechasMap[fd.fecha] = [];
+                    fechasMap[fd.fecha].push({codigo: fd.codigo, hora: fd.hora});
+                });
+
+                // set semana actual (lunes de la semana actual)
+                const hoy = new Date(); currentWeekStart = getMonday(hoy);
+                generarFechasSemana();
+            } catch(err){
+                console.error(err);
+                alert('Error cargando momentos desde el servidor.');
+            }
+        });
+
+        // antes de enviar: inyectar inputs hidden (seleccion_momentos... y tipo_examen_final)
+        form.addEventListener('submit', (e) => {
+            // ensure at least one selected
+            if(seleccionadas.size === 0){
+                e.preventDefault();
+                alert('Debes escoger al menos una fecha y hora para el examen.');
+                return;
+            }
+
+            // eliminar hidden previos
+            form.querySelectorAll('input[name="seleccion_momentos"]').forEach(h=>h.remove());
+            form.querySelectorAll('input[name="tipo_examen_final"]').forEach(h=>h.remove());
+
+            // agregar ocultos para cada seleccion
+            seleccionadas.forEach(val => {
+                const hidden = document.createElement('input');
+                hidden.type = 'hidden';
+                hidden.name = 'seleccion_momentos';
+                hidden.value = val;
+                form.appendChild(hidden);
+            });
+
+            // tipo_examen_final
+            const tiposAsign = (data[asignaturaEl.value] && data[asignaturaEl.value].tipo_examen) || [];
+            if(tiposAsign.length === 0){
+                const h = document.createElement('input'); h.type='hidden'; h.name='tipo_examen_final'; h.value='corriente'; form.appendChild(h);
+            } else {
+                const h2 = document.createElement('input'); h2.type='hidden'; h2.name='tipo_examen_final'; h2.value=tipoEl.value || ''; form.appendChild(h2);
+            }
+            // allow submit to proceed (no preventDefault)
+        });
+
+    }); // end registerBtn click
+
+    // end script
+</script>
+<script src="{{ url_for('static', filename='JS/modal_examen.js') }}"></script>
+<script src="{{ url_for('static', filename='JS/calendar.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+/* Animación de entrada desde la derecha */
+@keyframes slideInRight {
+    from { transform: translateX(10px); opacity: 0; }
+    to   { transform: translateX(0);  opacity: 1; }
+}
+
+/* Animación de entrada desde la izquierda */
+@keyframes slideInLeft {
+    from { transform: translateX(-10px); opacity: 0; }
+    to   { transform: translateX(0);  opacity: 1; }
+}
+
+/* Clase para animación desde derecha */
+.slide-in-right {
+    animation: slideInRight 0.35s ease forwards;
+}
+
+/* Clase para animación desde izquierda */
+.slide-in-left {
+    animation: slideInLeft 0.35s ease forwards;
+}
+
+/* Opcional: fade para cambio neutro */
+.fade-calendar {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+/* ------------------- */
+/* Cuando un badge no coincide con la asignatura seleccionada */
+.day .exam-badge.dimmed {
+    opacity: 0.25;       /* se hace translúcido */
+    transition: opacity 0.25s ease;
+}
+
+/* Resaltar el badge de la asignatura */
+.day .exam-badge.highlighted {
+    transform: scale(1.05);
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}

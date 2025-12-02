@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Registro de examen</title>
+  <style>
+    body{font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; padding:20px}
+    label{display:block; margin-top:12px}
+    select, input{padding:6px; width:320px}
+    .exam-list{margin-top:20px}
+    .checkbox-container{margin-bottom:6px}
+    .week-navigation{margin-top:6px; margin-bottom:6px;}
+    .week-navigation button{margin-right:6px;}
+  </style>
+</head>
+<body>
+<h2>Registrar examen</h2>
+<form method="post" action="/registrar" id="formExam">
+  <label>Asignatura
+    <select name="asignatura" id="asignatura" required>
+      <option value="" disabled selected>-- selecciona asignatura --</option>
+      {% for key in asignaturas %}
+        <option value="{{ key }}">{{ key }}</option>
+      {% endfor %}
+    </select>
+  </label>
+
+  <label id="select_box">Tipo de examen
+    <select name="tipo_examen" id="tipo_examen"></select>
+    <div id="tipo_info" style="font-size:0.9em;color:#555;margin-top:6px"></div>
+  </label>
+
+  <div id="fechas_disponibles_container">
+    <label>Fechas y horas disponibles (elige una o varias)</label>
+    <div class="week-navigation">
+      <button type="button" id="prevWeek">Anterior</button>
+      <button type="button" id="nextWeek">Siguiente</button>
+    </div>
+    <div id="fechas_disponibles"></div>
+  </div>
+
+  <label>Duración
+    <select name="duracion" required>
+      <option value="1h">1h</option>
+      <option value="1:30">1:30</option>
+      <option value="2h">2h</option>
+    </select>
+  </label>
+
+  <div style="margin-top:12px">
+    <button type="submit">Registrar examen</button>
+    <button type="button" onclick="location.href='/'">Cancelar</button>
+  </div>
+</form>
+
+<section class="exam-list">
+  <h3>Exámenes registrados</h3>
+  {% if exams_count == 0 %}
+    <p>No hay exámenes registrados.</p>
+  {% else %}
+    <ul>
+    {% for a, exams in asignaturas.items() %}
+      {% if exams.examenes|length > 0 %}
+        <li><strong>{{ a }}</strong>
+          <ul>
+            {% for ex in exams.examenes %}
+              <li>Tipo: {{ ex.tipo_examen }} — Duración: {{ ex.duracion }} — Fechas: 
+                  {% for fh in ex.fechas_horas %}
+                    {{ fh.fecha }} {{ fh.hora }}{% if not loop.last %} / {% endif %}
+                  {% endfor %}
+              </li>
+            {% endfor %}
+          </ul>
+        </li>
+      {% endif %}
+    {% endfor %}
+    </ul>
+  {% endif %}
+</section>
+
+<script>
+const asignaturas = {{ asignaturas_json | safe }};
+const asignaturaEl = document.getElementById('asignatura');
+const fechasContainer = document.getElementById('fechas_disponibles');
+const tipoEl = document.getElementById('tipo_examen');
+const selectBox = document.getElementById('select_box');
+
+let currentWeekStart = null;
+let momentosDisponibles = [];
+let detallesMomentos = {};
+let seleccionadas = new Set(); // guarda todas las selecciones de todas las semanas
+
+// evento change de cada checkbox
+function checkboxChanged(e){
+    if(e.target.checked) seleccionadas.add(e.target.value);
+    else seleccionadas.delete(e.target.value);
+}
+
+// generar checkboxes de la semana actual
+function generarFechasSemana(){
+    fechasContainer.innerHTML = '';
+    for(let i=0; i<7; i++){
+        const dia = new Date(currentWeekStart);
+        dia.setDate(dia.getDate() + i);
+        const diaSemana = dia.getDay() - 1; // lunes=0
+        momentosDisponibles.forEach(m => {
+            if(parseInt(m[0]) === diaSemana){
+                const valor = `${m}-${dia.toISOString().slice(0,10)}`;
+                const div = document.createElement('div');
+                div.className = 'checkbox-container';
+                const label = document.createElement('label');
+                const input = document.createElement('input');
+                input.type = 'checkbox';
+                input.value = valor;
+                input.checked = seleccionadas.has(valor);
+                input.addEventListener('change', checkboxChanged);
+                label.appendChild(input);
+                label.appendChild(document.createTextNode(` ${dia.toISOString().slice(0,10)} ${detallesMomentos[m].hora}`));
+                div.appendChild(label);
+                fechasContainer.appendChild(div);
+            }
+        });
+    }
+}
+
+// navegación semanas
+document.getElementById('prevWeek').addEventListener('click', () => {
+    currentWeekStart.setDate(currentWeekStart.getDate() - 7);
+    generarFechasSemana();
+});
+document.getElementById('nextWeek').addEventListener('click', () => {
+    currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+    generarFechasSemana();
+});
+
+// al cambiar de asignatura
+asignaturaEl.addEventListener('change', async () => {
+    const a = asignaturaEl.value;
+    const res = await fetch(`/api/momentos/${encodeURIComponent(a)}`);
+    const data = await res.json();
+
+    // tipos de examen
+    tipoEl.innerHTML = '';
+    const tipos = asignaturas[a]['tipo_examen'] || [];
+    if(tipos.length === 0){
+        selectBox.style.display = 'none';
+    } else {
+        selectBox.style.display = 'block';
+        const placeholder = document.createElement('option');
+        placeholder.disabled = true;
+        placeholder.selected = true;
+        placeholder.text = '-- selecciona tipo --';
+        tipoEl.add(placeholder);
+        tipos.forEach(t => {
+            const opt = document.createElement('option');
+            opt.value = t;
+            opt.text = t;
+            tipoEl.add(opt);
+        });
+    }
+
+    // fechas y horas disponibles
+    momentosDisponibles = data.momentos;
+    detallesMomentos = data.detalles;
+
+    // primera semana (lunes actual)
+    const hoy = new Date();
+    currentWeekStart = new Date(hoy);
+    currentWeekStart.setDate(currentWeekStart.getDate() - currentWeekStart.getDay() + 1); // lunes
+    generarFechasSemana();
+});
+
+// antes de enviar formulario, generar hidden con todas las seleccionadas
+document.getElementById('formExam').addEventListener('submit', (e) => {
+    // Validar que se haya seleccionado al menos un momento
+    if (seleccionadas.size === 0) {
+        e.preventDefault();
+        alert("Debes escoger al menos una fecha y hora para el examen.");
+        return;
+    }
+    // eliminar hidden previos
+    document.querySelectorAll('input[name="seleccion_momentos"]').forEach(h => h.remove());
+
+    // agregar todas las seleccionadas
+    seleccionadas.forEach(val => {
+        const hidden = document.createElement('input');
+        hidden.type = 'hidden';
+        hidden.name = 'seleccion_momentos';
+        hidden.value = val;
+        document.getElementById('formExam').appendChild(hidden);
+    });
+
+    // tipo de examen
+    if(selectBox.style.display === 'none'){
+        const h = document.createElement('input');
+        h.type = 'hidden';
+        h.name = 'tipo_examen_final';
+        h.value = 'corriente';
+        document.getElementById('formExam').appendChild(h);
+    } else {
+        const h2 = document.createElement('input');
+        h2.type = 'hidden';
+        h2.name = 'tipo_examen_final';
+        h2.value = tipoEl.value;
+        document.getElementById('formExam').appendChild(h2);
+    }
+});
+</script>
+</body>
+</html>

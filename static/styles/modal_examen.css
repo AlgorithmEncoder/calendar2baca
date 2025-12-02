@@ -1,0 +1,352 @@
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(3, 7, 18, 0.65);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    z-index: 60;
+}
+
+.sheet {
+    background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+    border: 1px solid rgba(255,255,255,0.08);
+    padding: 22px 26px;
+    border-radius: 14px;
+    max-width: 780px;
+    width: 100%;
+    color: #e7edfa;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+
+.sheet label {
+    display: block;
+    margin-bottom: 14px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--muted);
+}
+
+.sheet select,
+.sheet input[type="text"],
+.sheet input[type="number"],
+.sheet input[type="date"],
+.sheet input[type="time"] {
+    width: 100%;
+    margin-top: 6px;
+    padding: 8px 10px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 14px;
+}
+
+.sheet select:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.sheet button[type="submit"],
+.sheet button[type="button"] {
+    padding: 8px 16px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #e9eef5;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    margin-right: 10px;
+}
+
+.sheet button[type="submit"]:hover,
+.sheet button[type="button"]:hover {
+    background: rgba(255,255,255,0.18);
+    border-color: rgba(255,255,255,0.25);
+}
+
+#closeRegisterModal {
+    float: right;
+    background: rgba(255,255,255,0.06);
+}
+
+.week-navigation button {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.12);
+    padding: 6px 12px;
+    border-radius: 8px;
+    color: var(--muted);
+    cursor: pointer;
+}
+
+.week-navigation button:hover {
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+}
+
+#fechas_disponibles_container {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.05);
+    padding: 14px;
+    border-radius: 12px;
+    margin-bottom: 18px;
+}
+
+/* Contenedor de los selects (opcional, mejora separación) */
+.sheet label {
+    display: block;
+    margin-bottom: 14px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--muted);
+}
+
+/* Selects del modal */
+/* Estilo moderno para selects nativos */
+.sheet select {
+    width: 100%;
+    padding: 10px 12px;
+    margin-top: 6px;
+
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+
+    color: #e5ecf7;
+    font-size: 14px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+
+    appearance: none;        /* Quita estilo nativo */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg width='12' height='8' viewBox='0 0 12 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23c8d0e0' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 12px;
+}
+
+/* Hover */
+.sheet select:hover {
+    background: rgba(255,255,255,0.10);
+}
+
+/* Focus */
+.sheet select:focus {
+    outline: none;
+    border-color: var(--accent, #4ea3ff);
+    background: rgba(255,255,255,0.12);
+}
+
+/* Opciones del dropdown nativo (dark) */
+.sheet select option {
+    background-color: #0e1625;
+    color: #e5ecf7;
+    padding: 8px;
+}
+
+/* Hover en Firefox */
+.sheet select option:hover {
+    background-color: rgba(255,255,255,0.12);
+}
+
+/* ---------ANIMACIÓN CAMBIO SEMANA----------- */
+/* Contenedor de las fechas de la semana */
+#fechas_disponibles {
+    display: flex;
+    gap: 8px;
+    overflow: hidden; /* evita scroll innecesario */
+}
+
+/* Cada bloque de día */
+#fechas_disponibles > div {
+    flex: 1;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+/* Animación de entrada desde la derecha */
+.slide-in-right {
+    transform: translateX(20px);
+    opacity: 0;
+    animation: slideInRight 0.35s forwards;
+}
+
+@keyframes slideInRight {
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Animación de entrada desde la izquierda */
+.slide-in-left {
+    transform: translateX(-20px);
+    opacity: 0;
+    animation: slideInLeft 0.35s forwards;
+}
+
+@keyframes slideInLeft {
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.fade {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+
+/* --------------------------------- */
+/*  ELECCIÓN EXÁMENES, MEJOR EXAMEN  */
+/* --------------------------------- */
+.section-title {
+    margin-top: 24px;
+    margin-bottom: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    opacity: 0.8;
+}
+
+.exam-choices {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-bottom: 20px;
+}
+
+.exam-choice-item {
+    padding: 12px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    backdrop-filter: blur(6px);
+    border-radius: 10px;
+}
+
+.exam-choice-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.exam-choice-asignatura {
+    font-weight: 600;
+    font-size: 14px;
+    text-transform: capitalize;
+}
+
+.exam-choice-dots {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.fecha-chip {
+    display: inline-block;
+    padding: 4px 8px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 8px;
+    font-size: 12px;
+    margin-right: 6px;
+    margin-top: 4px;
+}
+
+.option-item {
+    margin-bottom: 8px;
+}
+
+.option-box {
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    background: #fff;
+    transition: all .25s ease;
+}
+
+/* Mejor opción */
+.best-option {
+    border: 2px solid #34d399;
+    box-shadow: 0 0 8px rgba(52, 211, 153, .4);
+}
+
+/* Opciones recomendadas (≥60) */
+.good-option {
+    border-left: 4px solid #4ade80;
+}
+
+/* Opciones malas (<60) */
+.bad-option {
+    border-left: 4px solid #f87171;
+    opacity: 0.55;
+}
+
+.option-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+}
+
+.option-score {
+    margin-top: 4px;
+    font-size: 13px;
+    opacity: 0.8;
+}
+
+.icon {
+    font-size: 16px;
+}
+
+.exam-choices-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.exam-nav {
+    display: flex;
+    gap: 6px;
+}
+
+.exam-nav-buttons {
+    display: inline-flex;
+    gap: 6px;
+    margin-left: 12px;
+}
+
+.exam-nav-buttons .nav-btn {
+    background: rgba(255,255,255,0.03);   /* mismo vidrio que .btn */
+    border: 1px solid rgba(255,255,255,0.04);
+    color: var(--muted);
+    padding: 4px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.2s;
+}
+
+.exam-nav-buttons .nav-btn:hover {
+    color: #fff;
+    background: rgba(255,255,255,0.05);
+}
+
+.exam-header h2 {
+    display: inline-block;
+    margin: 0;
+    font-size: 18px;
+    vertical-align: middle;
+}
+
+
+.nav-btn:disabled {
+    opacity: 0.5;
+    cursor: default;
+}

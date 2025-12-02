@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calendario Integrado</title>
+<style>
+:root{--bg:#0f1724;--card:#0b1220;--accent:#60a5fa;--muted:#94a3b8;--glass:rgba(255,255,255,0.03)}
+*{box-sizing:border-box}
+body{font-family:Inter,system-ui,Segoe UI,Roboto,Arial;margin:0;background:linear-gradient(180deg,#071022 0%,#07162a 100%);color:#e6eef8;padding:24px}
+.app{max-width:1100px;margin:0 auto}
+header{display:flex;align-items:center;gap:16px;margin-bottom:18px}
+h1{font-size:20px;margin:0}.controls{margin-left:auto;display:flex;gap:8px;align-items:center}.btn{background:var(--glass);border:1px solid rgba(255,255,255,0.04);padding:8px 10px;border-radius:8px;color:var(--muted);cursor:pointer}.btn:hover{color:#fff}
+.calendar{display:grid;grid-template-columns:250px 1fr;gap:18px}.sidebar{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.03)}.month-title{font-weight:600;font-size:18px;display:flex;align-items:center;justify-content:space-between}.legend{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.legend-item{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;background:rgba(255,255,255,0.02)}.color-dot{width:12px;height:12px;border-radius:3px}.today{margin-top:12px;font-size:14px;color:var(--muted)}
+.grid-card{background:linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01));padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,0.03)}.weekdays{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;gap:6px;margin-bottom:8px;color:var(--muted)}.days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}.day{min-height:90px;padding:8px;border-radius:8px;background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);position:relative;transition:transform 0.2s}.day:hover{transform:scale(1.02)}.day.inactive{opacity:0.35}.day-number{font-weight:600}.exam-badge{display:block;padding:4px 6px;border-radius:6px;margin-top:6px;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;transition:transform 0.15s}.exam-badge:hover{transform:scale(1.05)}.exam-count{position:absolute;right:8px;top:8px;background:rgba(0,0,0,0.25);padding:3px 6px;border-radius:99px;font-size:12px}
+.modal{position:fixed;inset:0;background:rgba(2,6,23,0.6);display:flex;align-items:center;justify-content:center;padding:18px;z-index:60;opacity:0;pointer-events:none;transition:opacity 0.3s}.modal.show{opacity:1;pointer-events:auto}.sheet{background:#061025;padding:14px;border-radius:12px;max-width:760px;width:100%;border:1px solid rgba(255,255,255,0.04)}.sheet h2{margin:0 0 10px 0}.exam-item{padding:10px;border-radius:10px;margin-bottom:8px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01))}.meta{font-size:13px;color:var(--muted)}
+@media(max-width:900px){.calendar{grid-template-columns:1fr}.sidebar{order:2}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+<h1>Calendario de Exámenes</h1>
+<div class="controls">
+<button class="btn" onclick="openForm()">Registrar examen</button>
+<button class="btn" onclick="exportICS()">Exportar .ics</button>
+</div>
+</header>
+<div class="calendar">
+<div class="sidebar">
+<div class="month-title"><button class="btn" onclick="prevMonth()">◀</button><span id="monthLabel"></span><button class="btn" onclick="nextMonth()">▶</button></div>
+<div class="legend" id="legend"></div>
+<div class="today" id="todayLabel"></div>
+</div>
+<div class="grid-card">
+<div class="weekdays" id="weekdays"></div>
+<div class="days" id="calendarGrid"></div>
+</div>
+</div>
+</div>
+
+<div class="modal" id="modal"><div class="sheet"><h2 id="modalTitle"></h2><div id="modalBody"></div><button class="btn" onclick="closeModal()">Cerrar</button></div></div>
+
+<div class="sheet" id="formPanel" style="display:none">
+<button class="btn" onclick="closeForm()">Cerrar</button>
+<h3>Registrar examen</h3>
+<form id="formExam">
+<label>Asignatura<select name="asignatura" id="asignatura" required></select></label>
+<label id="select_box">Tipo de examen<select name="tipo_examen" id="tipo_examen"></select></label>
+<div><label>Fechas y horas disponibles</label><div class="week-navigation"><button type="button" id="prevWeek">Anterior</button><button type="button" id="nextWeek">Siguiente</button></div><div id="fechas_disponibles"></div></div>
+<label>Duración<select name="duracion" required><option value="1h">1h</option><option value="1:30">1:30</option><option value="2h">2h</option></select></label>
+<button type="submit" class="btn" style="margin-top:12px">Registrar</button>
+</form>
+</div>
+
+<script>
+// ------------------- Datos -------------------
+let asignaturas = {{ asignaturas_json | safe }};
+let colors={}, eventsByDate={};
+
+function asignColors(){
+  const palette=['#60a5fa','#facc15','#22c55e','#f472b6','#f97316','#3b82f6','#a78bfa'];
+  let i=0; for(const asig in asignaturas){colors[asig]=palette[i%palette.length]; i++;}
+}
+
+// ------------------- Calendario -------------------
+let current=new Date();
+function renderCalendar(){
+  const year=current.getFullYear(), month=current.getMonth();
+  const first=new Date(year,month,1), last=new Date(year,month+1,0);
+  document.getElementById('monthLabel').innerText=first.toLocaleString('es',{month:'long'})+' '+year;
+  document.getElementById('weekdays').innerText='LU MA MI JU VI SA DO';
+
+  eventsByDate={};
+  for(const asig in asignaturas){
+    asignaturas[asig].examenes.forEach(ex=>{
+      ex.fechas_horas.forEach(fh=>{
+        if(!eventsByDate[fh.fecha]) eventsByDate[fh.fecha]=[];
+        eventsByDate[fh.fecha].push({...fh,asignatura:asig,tipo:ex.tipo_examen,duracion:ex.duracion});
+      });
+    });
+  }
+
+  const grid=document.getElementById('calendarGrid'); grid.innerHTML='';
+  let offset=(first.getDay()+6)%7;
+  for(let i=0;i<offset;i++) grid.innerHTML+='<div class="day inactive"></div>';
+  for(let d=1;d<=last.getDate();d++){
+    const dateStr=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    let dayHTML=`<div class='day'><div class='day-number'>${d}</div>`;
+    if(eventsByDate[dateStr]){
+      eventsByDate[dateStr].sort((a,b)=>a.hora.localeCompare(b.hora)).forEach(ev=>{
+        dayHTML+=`<span class='exam-badge' style='background:${colors[ev.asignatura]}' onclick='openModal("${dateStr}")'>${ev.asignatura}</span>`;
+      });
+    }
+    dayHTML+='</div>'; grid.innerHTML+=dayHTML;
+  }
+  renderLegend(); renderToday();
+}
+function renderLegend(){const legend=document.getElementById('legend'); legend.innerHTML=''; for(const asig in colors){legend.innerHTML+=`<div class='legend-item'><div class='color-dot' style='background:${colors[asig]}'></div>${asig}</div>`;}}
+function renderToday(){document.getElementById('todayLabel').innerText='Hoy: '+new Date().toISOString().slice(0,10);}
+function prevMonth(){current.setMonth(current.getMonth()-1); renderCalendar();}
+function nextMonth(){current.setMonth(current.getMonth()+1); renderCalendar();}
+
+// ------------------- Modal -------------------
+function openModal(date){
+  const events=eventsByDate[date]; let body=''; events.sort((a,b)=>a.hora.localeCompare(b.hora)).forEach(e=>{body+=`<div class='exam-item'><strong>${e.asignatura}</strong> — ${e.hora} — ${e.tipo} — ${e.duracion}</div>`;});
+  document.getElementById('modalTitle').innerText=`Exámenes del ${date}`;
+  document.getElementById('modalBody').innerHTML=body;
+  document.getElementById('modal').classList.add('show');
+}
+function closeModal(){document.getElementById('modal').classList.remove('show');}
+
+// ------------------- Formulario -------------------
+const asignaturaEl=document.getElementById('asignatura'), tipoEl=document.getElementById('tipo_examen'), fechasContainer=document.getElementById('fechas_disponibles');
+let currentWeekStart=null, momentosDisponibles=[], detallesMomentos={}, seleccionadas=new Set();
+function openForm(){document.getElementById('formPanel').style.display='block'; cargarAsignaturas();}
+function closeForm(){document.getElementById('formPanel').style.display='none';}
+function checkboxChanged(e){ e.target.checked?seleccionadas.add(e.target.value):seleccionadas.delete(e.target.value);}
+function generarFechasSemana(){fechasContainer.innerHTML=''; for(let i=0;i<7;i++){ const dia=new Date(currentWeekStart); dia.setDate(dia.getDate()+i); const diaSemana=dia.getDay()-1; momentosDisponibles.forEach(m=>{ if(parseInt(m[0])===diaSemana){ const valor=`${m}-${dia.toISOString().slice(0,10)}`; const div=document.createElement('div'); div.className='checkbox-container'; div.innerHTML=`<label><input type='checkbox' value='${valor}' ${seleccionadas.has(valor)?'checked':''}> ${dia.toISOString().slice(0,10)} ${detallesMomentos[m].hora}</label>`; div.querySelector('input').addEventListener('change',checkboxChanged); fechasContainer.appendChild(div); } }); } }
+document.getElementById('prevWeek').onclick=()=>{ currentWeekStart.setDate(currentWeekStart.getDate()-7); generarFechasSemana(); };
+document.getElementById('nextWeek').onclick=()=>{ currentWeekStart.setDate(currentWeekStart.getDate()+7); generarFechasSemana(); };
+function cargarAsignaturas(){asignaturaEl.innerHTML='<option disabled selected>-- selecciona asignatura --</option>'; for(const a in asignaturas){const opt=document.createElement('option'); opt.value=a; opt.text=a; asignaturaEl.appendChild(opt);}}
+asignaturaEl.addEventListener('change',async()=>{
+  const a=asignaturaEl.value;
+  const res=await fetch(`/api/momentos/${encodeURIComponent(a)}`);
+  const data=await res.json();
+  tipoEl.innerHTML=''; const tipos=asignaturas[a]['tipo_examen']||[];
+  if(tipos.length===0){document.getElementById('select_box').style.display='none';} else {document.getElementById('select_box').style.display='block'; tipoEl.innerHTML='<option disabled selected>-- selecciona tipo --</option>'+tipos.map(t=>`<option>${t}</option>`).join('');}
+  momentosDisponibles=data.momentos; detallesMomentos=data.detalles;
+  const hoy=new Date(); currentWeekStart=new Date(hoy); currentWeekStart.setDate(hoy.getDate()-hoy.getDay()+1); generarFechasSemana();
+});
+document.getElementById('formExam').addEventListener('submit',async(e)=>{
+  e.preventDefault(); if(seleccionadas.size===0){alert('Debes escoger al menos una fecha'); return;}
+  const payload=new FormData(document.getElementById('formExam'));
+  seleccionadas.forEach(val=>payload.append('seleccion_momentos',val));
+  if(document.getElementById('select_box').style.display==='none') payload.append('tipo_examen_final','corriente');
+  else payload.append('tipo_examen_final',tipoEl.value);
+  const res=await fetch('/registrar',{method:'POST',body:payload});
+  if(res.ok){
+    const updated=await fetch('/api/asignaturas_json').then(r=>r.json());
+    asignaturas=updated;
+    closeForm(); renderCalendar();
+  } else {alert('Error al registrar');}
+});
+
+// ------------------- Export ICS -------------------
+function exportICS(){
+  let icsContent='BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Examenes//ES\n';
+  for(const asig in asignaturas){
+    asignaturas[asig].examenes.forEach(ex=>{
+      ex.fechas_horas.forEach(fh=>{
+        icsContent+=`BEGIN:VEVENT\nSUMMARY:${asig} (${ex.tipo_examen})\nDTSTART:${fh.fecha.replace(/-/g,'')}T${fh.hora.split('-')[0].replace(':','')}00\nDTEND:${fh.fecha.replace(/-/g,'')}T${fh.hora.split('-')[1].replace(':','')}00\nEND:VEVENT\n`;
+      });
+    });
+  }
+  icsContent+='END:VCALENDAR';
+  const blob=new Blob([icsContent],{type:'text/calendar'});
+  const link=document.createElement('a'); link.href=URL.createObjectURL(blob); link.download='examenes.ics'; link.click();
+}
+
+// ------------------- Inicialización -------------------
+asignColors(); renderCalendar();
+</script>
+</body>
+</html>
