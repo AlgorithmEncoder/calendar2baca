@@ -18,6 +18,7 @@
         <button id="next" class="btn">▶</button>
         <button id="todayBtn" class="btn">Hoy</button>
         <button id="registerExamBtn" class="btn">Registrar examen</button>
+        <button id="cleanCalendarBtn" class="btn">Limpiar calendario</button>
     </div>
     </header>
 
@@ -509,8 +510,44 @@
             }
             // allow submit to proceed (no preventDefault)
         });
-
     }); // end registerBtn click
+    
+    document.getElementById('cleanCalendarBtn').addEventListener('click', () => {
+        const clave = prompt("Introduce la clave para limpiar todo el calendario:");
+
+        if (clave === null) return;
+
+        // Primero verificamos la clave
+        fetch("/verificar_clave_maestra", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ clave: clave })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (!data.ok) {
+                alert("❌ Clave incorrecta. No tienes permiso.");
+                return;
+            }
+
+            // Clave correcta → limpiamos el calendario
+            return fetch("/limpiar_calendario", { method: "POST" });
+        })
+        .then(res => {
+            if (!res) return;
+            if (!res.ok) throw new Error("Error limpiando calendario");
+
+            alert("Calendario limpiado correctamente");
+
+            // recargar vista
+            renderWithAnimation("fade");
+            generarExamenesPorEscoger();
+        })
+        .catch(err => {
+            console.error(err);
+            alert("No se pudo limpiar el calendario");
+        });
+    });
 
     // end script
 </script>

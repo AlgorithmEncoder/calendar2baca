@@ -16,6 +16,7 @@ EMAIL_USER = os.environ.get('EMAIL_USER')
 EMAIL_PASS = os.environ.get('EMAIL_PASS')
 DESTINATARIOS = ['persona1@outlook.com', 'persona2@outlook.com']  # lista de destinatarios
 CLAVE_ADMIN = os.environ.get("ADMIN_KEY", None)
+CLAVE_MAESTRA = os.environ.get("MASTER_KEY", None)
 
 def enviar_correo(asunto, cuerpo, destinatarios=DESTINATARIOS):
     """
@@ -468,7 +469,14 @@ def verificar_clave():
     data = request.get_json()
     clave = data.get("clave")
 
-    return jsonify({"ok": clave == CLAVE_ADMIN})
+    return jsonify({"ok": clave == CLAVE_ADMIN or clave == CLAVE_MAESTRA})
+
+@app.post("/verificar_clave_maestra")
+def verificar_clave():
+    data = request.get_json()
+    clave = data.get("clave")
+
+    return jsonify({"ok": clave == CLAVE_MAESTRA})
 
 @app.route("/eliminate/<codigoFecha>", methods=['POST'])
 def eliminar_examen(codigoFecha):
@@ -577,6 +585,12 @@ def buscar_mejor_dia(exam_id):
 
     return jsonify({"ranking": ranking})
 
+@app.post("/limpiar_calendario")
+def limpiar_calendario_route():
+    for asignatura in DB['asignaturas']:
+        asignatura['examenes'] = []
+    guardar_db(DB)
+    return jsonify({"ok": True, "mensaje": "Calendario limpiado"})
 
 
 
