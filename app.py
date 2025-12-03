@@ -15,8 +15,15 @@ SMTP_PORT = 587
 EMAIL_USER = os.environ.get('EMAIL_USER')
 EMAIL_PASS = os.environ.get('EMAIL_PASS')
 DESTINATARIOS = ['persona1@outlook.com', 'persona2@outlook.com']  # lista de destinatarios
-CLAVE_ADMIN = os.environ.get("ADMIN_KEY", None)
-CLAVE_MAESTRA = os.environ.get("MASTER_KEY", None)
+CLAVE_ADMIN = os.environ.get("ADMIN_KEY")
+CLAVE_MAESTRA = os.environ.get("MASTER_KEY")
+print(">>> DEBUG ENV:", {
+    "EMAIL_USER": repr(os.environ.get("EMAIL_USER")),
+    "EMAIL_PASS": repr(os.environ.get("EMAIL_PASS")),
+    "ADMIN_KEY": repr(os.environ.get("ADMIN_KEY")),
+    "MASTER_KEY": repr(os.environ.get("MASTER_KEY")),
+})
+
 
 def enviar_correo(asunto, cuerpo, destinatarios=DESTINATARIOS):
     """
