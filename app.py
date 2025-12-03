@@ -472,7 +472,7 @@ def verificar_clave():
     return jsonify({"ok": clave == CLAVE_ADMIN or clave == CLAVE_MAESTRA})
 
 @app.post("/verificar_clave_maestra")
-def verificar_clave():
+def verificar_clave_maestra():
     data = request.get_json()
     clave = data.get("clave")
 
