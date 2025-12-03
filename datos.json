@@ -291,7 +291,9 @@
         },
         "inglés": {
             "peso": [
-                0.3
+                0.318,
+                0.183,
+                0.335
             ],
             "momentos": [
                 "06",
@@ -299,7 +301,11 @@
                 "34"
             ],
             "examenes": [],
-            "tipo_examen": []
+            "tipo_examen": [
+                "speaking",
+                "listening",
+                "reading/writing"
+            ]
         },
         "francés": {
             "peso": [
