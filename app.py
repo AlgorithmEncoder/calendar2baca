@@ -15,7 +15,7 @@ SMTP_PORT = 587
 EMAIL_USER = os.environ.get('EMAIL_USER')
 EMAIL_PASS = os.environ.get('EMAIL_PASS')
 DESTINATARIOS = ['persona1@outlook.com', 'persona2@outlook.com']  # lista de destinatarios
-YEAR = '2025'
+CLAVE_ADMIN = os.environ.get("ADMIN_KEY", None)
 
 def enviar_correo(asunto, cuerpo, destinatarios=DESTINATARIOS):
     """
@@ -463,6 +463,13 @@ def registrar():
 # -----------------------------
 # ELIMINAR EXAMEN
 # -----------------------------
+@app.post("/verificar_clave")
+def verificar_clave():
+    data = request.get_json()
+    clave = data.get("clave")
+
+    return jsonify({"ok": clave == CLAVE_ADMIN})
+
 @app.route("/eliminate/<codigoFecha>", methods=['POST'])
 def eliminar_examen(codigoFecha):
     """
@@ -569,6 +576,8 @@ def buscar_mejor_dia(exam_id):
     ranking.sort(key=lambda x: x['score'], reverse=True)
 
     return jsonify({"ranking": ranking})
+
+
 
 
 # -----------------------------

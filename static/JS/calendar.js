@@ -80,19 +80,44 @@ const calendarGrid = document.getElementById('calendarGrid');
 const todayText = document.getElementById('todayText');
 const currentInfo = document.getElementById('currentInfo');
 
-function eliminarExamen(codigoFecha){
-    fetch(`/eliminate/${encodeURIComponent(codigoFecha)}`, { method: 'POST' })
+function eliminarExamen(codigoFecha) {
+    // pedir clave
+    const clave = prompt("Introduce la clave para eliminar este examen:");
+
+    if (clave === null) {
+        return; // canceló
+    }
+
+    // verificar clave en el servidor
+    fetch("/verificar_clave", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clave: clave })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (!data.ok) {
+            alert("❌ Clave incorrecta. No tienes permiso para eliminar.");
+            return;
+        }
+
+        // clave correcta → eliminar examen
+        return fetch(`/eliminate/${encodeURIComponent(codigoFecha)}`, { method: "POST" });
+    })
     .then(res => {
-        if(!res.ok) throw new Error('Error eliminando examen');
-        alert('Examen eliminado correctamente');
-        renderWithAnimation('fade');
+        if (!res) return;           // clave incorrecta → no continuar
+        if (!res.ok) throw new Error("Error eliminando examen");
+
+        alert("Examen eliminado correctamente");
+        renderWithAnimation("fade");
         generarExamenesPorEscoger();
     })
     .catch(err => {
         console.error(err);
-        alert('No se pudo eliminar el examen');
+        alert("No se pudo eliminar el examen");
     });
 }
+
 
 function sortExamsByTime(exams) {
     return exams.slice().sort((a,b)=>{
